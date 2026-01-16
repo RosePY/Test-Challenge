@@ -22,11 +22,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r starter_code/requirements.txt
 
-      # 4. Extract submitted CSV dynamically
+      # 4. Dynamically extract submitted CSV (CORRECT WAY)
       - name: Get submission file
         id: get_submission
         run: |
-          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '^submissions/.*\.csv')
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+
+          FILES=$(git diff --name-only $BASE_SHA...HEAD | grep '^submissions/.*\.csv')
 
           if [ -z "$FILES" ]; then
             echo "Error: No submission CSV found"
@@ -38,19 +40,4 @@ jobs:
             exit 1
           fi
 
-          echo "submission=$FILES" >> $GITHUB_OUTPUT
-
-      # 5. Restore hidden ground truth
-      - name: Restore test labels
-        run: |
-          echo "${{ secrets.TEST_LABELS_CSV }}" > test_labels.csv
-
-      # 6. Run scoring
-      - name: Run scoring
-        run: python scoring_script.py ${{ steps.get_submission.outputs.submission }}
-
-      # 7. Update leaderboard (Markdown)
-      - name: Update leaderboard
-        env:
-          SUBMISSION_FILE: ${{ steps.get_submission.outputs.submission }}
-        run: python update_leaderboard.py
+          echo "su
