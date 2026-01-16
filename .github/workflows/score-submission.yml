@@ -56,3 +56,4 @@ jobs:
         env:
           SUBMISSION_FILE: ${{ steps.get_submission.outputs.submission }}
         run: python update_leaderboard.py
+          echo "su
