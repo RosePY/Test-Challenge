@@ -12,6 +12,8 @@ jobs:
     steps:
       # 1. Checkout repository
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       # 2. Set up Python
       - uses: actions/setup-python@v4
@@ -40,4 +42,20 @@ jobs:
             exit 1
           fi
 
+          echo "submission=$FILES" >> $GITHUB_OUTPUT
+
+      # 5. Restore hidden ground truth
+      - name: Restore test labels
+        run: |
+          echo "${{ secrets.TEST_LABELS_CSV }}" > test_labels.csv
+
+      # 6. Run scoring
+      - name: Run scoring
+        run: python scoring_script.py ${{ steps.get_submission.outputs.submission }}
+
+      # 7. Update leaderboard (Markdown)
+      - name: Update leaderboard
+        env:
+          SUBMISSION_FILE: ${{ steps.get_submission.outputs.submission }}
+        run: python update_leaderboard.py
           echo "su
