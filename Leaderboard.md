@@ -1,0 +1,4 @@
+# Leaderboard
+
+| Rank | Submission | Score |
+|------|------------|-------|
