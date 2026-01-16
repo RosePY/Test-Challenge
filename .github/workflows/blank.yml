@@ -1,20 +1,51 @@
 name: Score Submission
+
 on:
   pull_request:
     paths:
       - 'submissions/*.csv'
+
 jobs:
   score:
     runs-on: ubuntu-latest
+
     steps:
+      # 1. Checkout repository
       - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+
+      # 2. Set up Python
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+
+      # 3. Install dependencies
       - name: Install dependencies
         run: pip install -r starter_code/requirements.txt
+
+      # 4. Extract submitted CSV dynamically
+      - name: Get submission file
+        id: get_submission
+        run: |
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '^submissions/.*\.csv')
+
+          if [ -z "$FILES" ]; then
+            echo "Error: No submission CSV found"
+            exit 1
+          fi
+
+          if [ $(echo "$FILES" | wc -l) -ne 1 ]; then
+            echo "Error: Exactly one CSV submission is required"
+            exit 1
+          fi
+
+          echo "submission=$FILES" >> $GITHUB_OUTPUT
+
+      # 5. Run scoring script
       - name: Run scoring
-        run: python scoring_script.py submissions/$PR_SUBMISSION
+        run: python scoring_script.py ${{ steps.get_submission.outputs.submission }}
+
+      # 6. Update leaderboard (Markdown)
       - name: Update leaderboard
+        env:
+          SUBMISSION_FILE: ${{ steps.get_submission.outputs.submission }}
         run: python update_leaderboard.py
