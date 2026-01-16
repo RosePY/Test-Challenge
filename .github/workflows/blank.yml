@@ -40,11 +40,16 @@ jobs:
 
           echo "submission=$FILES" >> $GITHUB_OUTPUT
 
-      # 5. Run scoring script
+      # 5. Restore hidden ground truth
+      - name: Restore test labels
+        run: |
+          echo "${{ secrets.TEST_LABELS_CSV }}" > test_labels.csv
+
+      # 6. Run scoring
       - name: Run scoring
         run: python scoring_script.py ${{ steps.get_submission.outputs.submission }}
 
-      # 6. Update leaderboard (Markdown)
+      # 7. Update leaderboard (Markdown)
       - name: Update leaderboard
         env:
           SUBMISSION_FILE: ${{ steps.get_submission.outputs.submission }}
